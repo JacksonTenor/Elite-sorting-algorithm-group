@@ -13,17 +13,18 @@ public class Group8 {
         // testing the comparator:
         //Data.test_Data(); // This MUST be commented out for your submission to the competition!
 
-//        if (args.length < 2) {
-//            System.out.println("Please run with two command line arguments: input and output file names");
-//            System.exit(0);
-//        }
-//
-//        String inputFileName = args[0];
-//        String outFileName = args[1];
+        if (args.length < 2) {
+            System.out.println("Please run with two command line arguments: input and output file names");
+            System.exit(0);
+        }
 
-        String inputFileName = "data/data3.txt";
-        String validationFileName = "data/out3.txt";
-        String outFileName = "data/output.txt";
+        String inputFileName = args[0];
+        String outFileName = args[1];
+
+        //String inputFileName = "data/data3.txt";
+        //String validationFileName = "data/out3.txt";
+        //String outFileName = "data/output.txt";
+
         // read as strings
         String [] data = readData(inputFileName);
         String [] toSort = data.clone();
@@ -36,31 +37,31 @@ public class Group8 {
         long end = System.currentTimeMillis();   // End the timing
 
         //validate result
-        try {
-            BufferedReader us = new BufferedReader(new FileReader(outFileName));
-            BufferedReader correct = new BufferedReader(new FileReader(outFileName));
-
-            int i = 0;
-            while(correct.ready()){
-                String ourLine = us.readLine();
-                String correctLine = correct.readLine();
-                if(!ourLine.equals(correctLine)){
-                    System.out.println("error");
-                }
-                i++;
-            }
-            us.close();
-            correct.close();
-        }catch(Exception e){
-            System.err.println(e);
-        }
+//        try {
+//            BufferedReader us = new BufferedReader(new FileReader(outFileName));
+//            BufferedReader correct = new BufferedReader(new FileReader(outFileName));
+//
+//            int i = 0;
+//            while(correct.ready()){
+//                String ourLine = us.readLine();
+//                String correctLine = correct.readLine();
+//                if(!ourLine.equals(correctLine)){
+//                    System.out.println("error");
+//                }
+//                i++;
+//            }
+//            us.close();
+//            correct.close();
+//        }catch(Exception e){
+//            System.err.println(e);
+//        }
         System.out.println(end - start);         // Report the results
         writeOutResult(sorted, outFileName);
     }
 
     // YOUR SORTING METHOD GOES HERE.
     // You may call other methods and use other classes.
-    // You may ALSO modify the methods, innner classes, etc, of Data[]
+    // You may ALSO modify the methods, inner classes, etc, of Data[]
     // But not in way that transfers information from the warmup sort to the timed sort.
     // Note: you may change the return type of the method.
     // You would need to provide your own function that prints your sorted array to
