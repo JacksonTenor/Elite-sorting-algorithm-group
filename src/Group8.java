@@ -21,8 +21,8 @@ public class Group8 {
 //        String inputFileName = args[0];
 //        String outFileName = args[1];
 
-        String inputFileName = "data/data1.txt";
-        String validationFileName = "data/out1.txt";
+        String inputFileName = "data/data3.txt";
+        String validationFileName = "data/out3.txt";
         String outFileName = "data/output.txt";
         // read as strings
         String [] data = readData(inputFileName);
@@ -70,15 +70,68 @@ public class Group8 {
         for (int i = 0; i < toSort.length; ++i) {
             toSortData[i] = new Data(toSort[i]);
         }
-        insertionSort(toSortData, new FracComparator());
+        quicksort(toSortData);
         return toSortData;
     }
 
-    private static void insertionSort(Data[] arr, FracComparator comparator){
+    private static void quicksort (Data[] arr){
+        quicksort(arr, 0, arr.length - 1);
+        insertionSort(arr);
+    }
+
+    private static void quicksort (Data[] arr, int low, int high){
+        if (high - low > 7){
+            int p = partition(arr, low, high);
+            quicksort(arr, low, p-1);
+            quicksort(arr, p+1, high);
+        }
+    }
+    private static int partition (Data[] arr, int low, int high){
+        int pivotPosition = high;
+        if(high - low > 7) {
+            int middle = (int) Math.floor((high - low) / 2) + low;
+            if (arr[low].compareTo(arr[middle]) <= 0) {
+                if (arr[high].compareTo(arr[low]) <= 0) {
+                    pivotPosition = low;
+                } else if (arr[high].compareTo(arr[middle]) >= 0) {
+                    pivotPosition = middle;
+                } else {
+                    pivotPosition = high;
+                }
+            } else {
+                if (arr[high].compareTo(arr[low]) >= 0) {
+                    pivotPosition = low;
+                } else if (arr[high].compareTo(arr[middle]) <= 0) {
+                    pivotPosition = middle;
+                } else {
+                    pivotPosition = high;
+                }
+            }
+        }
+        Data pivot = arr[pivotPosition];
+        arr[pivotPosition] = arr[high];
+        arr[high] = pivot;
+        int swapIndex = low - 1;
+
+        for (int i=low; i<high; i++){
+            if(arr[i].compareTo(pivot) <= 0){
+                swapIndex ++;
+                Data s = arr[swapIndex];
+                arr[swapIndex] = arr[i];
+                arr[i] = s;
+            }
+        }
+        swapIndex++;
+        Data s = arr[swapIndex];
+        arr[swapIndex] = arr[high];
+        arr[high] = s;
+        return swapIndex;
+    }
+    private static void insertionSort(Data[] arr){
         for(int i=1; i<arr.length; i++){
             Data key = arr[i];
             int j = i - 1;
-            while (j >= 0 && comparator.compare(arr[j], key) > 0){
+            while (j >= 0 && arr[j].compareTo(key) > 0){
                 arr[j+1] = arr[j];
                 j = j - 1;
             }
@@ -100,95 +153,82 @@ public class Group8 {
     private static void writeOutResult(Data[] sorted, String outputFilename) throws FileNotFoundException {
         PrintWriter out = new PrintWriter(outputFilename);
         for (Data s : sorted) {
-            out.println(s.exprLine);
+            out.println(s.original);
         }
         out.close();
     }
 
-    private static class FracComparator implements Comparator<Data> {
-        private static final BigInteger zero= new BigInteger("0");
+    public static class Data implements Comparable<Data> {
+        private double value;
+        private String original;
+
+        //In case of ties, type is used first
+        //0 = Decimal (goes first in ties)
+        //1 = Mixed Fraction (second in ties)
+        //2 = Pure Fraction (third in ties)
+        private int type;
+        //For two Mixed Fractions, the smaller whole number goes first
+        private double whole = 0;
+        //For two Mixed Fractions with the same whole part
+        //or two pure fractions, the smaller numerator goes first.
+        private double numerator = 0;
+
+
+        Data(String o) {
+            this.original = o;
+            if (o.contains("/")) {
+                String[] oa = o.split(" ");
+                if (oa.length == 2) {
+                    this.type = 1; //Mixed Fraction
+                    double whole = Double.parseDouble(oa[0]);
+                    this.value += whole;
+                    this.whole = whole;
+                    String[] fraction = oa[1].split("/");
+                    this.numerator = Double.parseDouble(fraction[0]);
+                    this.value += this.numerator / Double.parseDouble(fraction[1]);
+                } else {
+                    this.type = 2; //Pure Fraction
+                    String[] fraction = oa[0].split("/");
+                    this.numerator = Double.parseDouble(fraction[0]);
+                    this.value += this.numerator / Double.parseDouble(fraction[1]);
+                }
+            } else {
+                this.type = 0; //Decimal Expression
+                this.value = Double.parseDouble(o);
+            }
+        }
 
         @Override
-        public int compare(Data s1, Data s2) {
-            int cmp=0;
-
-            cmp=(s1.bigNumerator.multiply(s2.denominator)).compareTo(s2.bigNumerator.multiply(s1.denominator));  // Compare a/b to c/d by finding ad-bc
-
-            if(cmp!=0){return(cmp);}         // Value of s1 != value of s2
-            if(s1.type<s2.type){return(-1);} // Same value, type of s1 "comes before" s2
-            if(s1.type>s2.type){return(1);}  // Same value, type of s1 "comes after" s2
-
-            switch(s1.type){                 // s1.type==s2.type
-                case 0:                  // Same value both are decimal expressions they must be equal
-                    return(0);
-                case 1:                  // Mixed fractions
-                    cmp=(s1.whole).compareTo(s2.whole); // Compare whole numbers
-                    if(cmp!=0){return(cmp);} // Sort off whole number
-                    // NOTE:  There is no return or break in this case.  This is on purpose
-                case 2:                  // Pure fraction or equal whole numbers
-                    cmp=(s1.numerator).compareTo(s2.numerator); // Compare numerators of fraction portion
-                    if(cmp!=0){return(cmp);} // Sort off numerator
-                    return(0);
-            }
-            System.err.println("DANGER.  Bad input parsed");
-            return(0); // This should never be reached
-        }
-    }
-    private static class Data {
-        public BigInteger numerator;    // Arbitrary Precision for Numerator
-        public BigInteger denominator;  // Arbitrary Precision for Denominator
-        public BigInteger whole;        // Arbitrary Prection for whole number (not needed... but makes the Big Integer arithmetic easier)
-        public int type=-1;             // -1 unspecified, 0 decimal, 1 mixed, 2 pure
-        public BigInteger bigNumerator; // The value of all expressions can be internally represented as bigNumerator/denominator
-
-        public String exprLine;         // The original string-- useful to outputting at the end.
-
-        public Data(String line){
-            int posSlash=-1;       // Assume no slash
-            int posSpace=-1;       // No space
-            int posDot=-1;         // And no period
-            String powerTen="1";   // Decimals need a denominator with a power of 10 but we represent as a string.  This is the leading 1
-            exprLine = new String(line); // Make a copy of the string
-            // NOTE:  If the input is well-formed only one of the following three situations can arise
-            //        to ensure mutual exclusion we could use nested if-else... but I think this is easier to read
-            //
-            posSpace=exprLine.indexOf(" "); // Find the space (if any)
-            posSlash=exprLine.indexOf("/"); // Find the slash (if any)
-            if(posSlash!=-1){ // We found a slash so expression is either mixed or pure
-                if(posSpace!=-1){ // We found a slash *and* a space
-                    type=1;   // Set to type mixed
-                    whole=new BigInteger(exprLine.substring(0,posSpace));// Get everything before the space
-                } else {         // We found a slash *but* no space
-                    type=2;  //Set to type pure fraction
-                    whole=new BigInteger("0"); // Not really defined for pure fractions... but simplifies bigNumerator calculation below
-                }
-                numerator=new BigInteger(exprLine.substring(posSpace+1,posSlash));// Get everything before the slash and after the space (if any)
-                denominator=new BigInteger(exprLine.substring(posSlash+1));       // Get everything after the slash
-            }
-            posDot=exprLine.indexOf("."); //Find the period (if any)
-            if(posDot!=-1){  // We found a period
-                type=0;  // Set to type Decimal Expression
-                whole=new BigInteger(exprLine.substring(0,posDot));              // Get everything before the decimal point
-                numerator=new BigInteger(exprLine.substring(posDot+1));          // Get everything after the decimal point
-                for(int i=1;i<exprLine.length()-posDot;i++){                     //Build the power of 10
-                    powerTen+="0";
-                }
-                denominator=new BigInteger(powerTen); // Number of places in the decimal expression
-            }
-            bigNumerator = (whole.multiply(denominator)).add(numerator);// Make the big numerator
+        public String toString() {
+            //return Double.toString(this.value);
+            return this.original;
         }
 
-        public static void print_test(String s1,String s2){
+        @Override
+        public int compareTo(Data other) {
+            int diff = (int) Math.signum(this.value - other.value);
+            if (diff == 0) {
+                diff = this.type - other.type; //Compare by types
+                if (diff == 0 && this.type != 0) { //No further tiebreakers for decimals
+                    diff = (int) Math.signum(this.whole - other.whole);
+                    if (diff == 0) {
+                        diff = (int) Math.signum(this.numerator - other.numerator);
+                    }
+                }
+            }
+            return diff;
+        }
+
+        static void print_test(String s1,String s2){
             Data testItem,testItem2;
-            FracComparator comparator=new FracComparator();
             testItem=new Data(s1); testItem2=new Data(s2);
             System.out.println("Compare: "+s1+" to "+s2+": ");
-            System.out.println("Result="+comparator.compare(testItem,testItem2));
+            System.out.println("Result="+testItem.compareTo(testItem2));
             System.out.println("Compare: "+s2+" to "+s1+": ");
-            System.out.println("Result="+comparator.compare(testItem2,testItem));
+            System.out.println("Result="+testItem2.compareTo(testItem));
             System.out.println("---");
         }
-        public static void test_Data() {
+        static void test_Data() {
 
             String s1,s2;
 
