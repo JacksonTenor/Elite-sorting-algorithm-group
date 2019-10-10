@@ -1,4 +1,5 @@
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -13,17 +14,17 @@ public class Group8 {
         // testing the comparator:
         //Data.test_Data(); // This MUST be commented out for your submission to the competition!
 
-        if (args.length < 2) {
-            System.out.println("Please run with two command line arguments: input and output file names");
-            System.exit(0);
-        }
+//        if (args.length < 2) {
+//            System.out.println("Please run with two command line arguments: input and output file names");
+//            System.exit(0);
+//        }
+//
+//        String inputFileName = args[0];
+//        String outFileName = args[1];
 
-        String inputFileName = args[0];
-        String outFileName = args[1];
-
-        //String inputFileName = "data/data3.txt";
-        //String validationFileName = "data/out3.txt";
-        //String outFileName = "data/output.txt";
+        String inputFileName = "data/prelim1.txt";
+        String validationFileName = "data/outprelim1.txt";
+        String outFileName = "data/output.txt";
 
         // read as strings
         String [] data = readData(inputFileName);
@@ -36,27 +37,28 @@ public class Group8 {
         sorted = sort(toSort);
         long end = System.currentTimeMillis();   // End the timing
 
-        //validate result
-//        try {
-//            BufferedReader us = new BufferedReader(new FileReader(outFileName));
-//            BufferedReader correct = new BufferedReader(new FileReader(outFileName));
-//
-//            int i = 0;
-//            while(correct.ready()){
-//                String ourLine = us.readLine();
-//                String correctLine = correct.readLine();
-//                if(!ourLine.equals(correctLine)){
-//                    System.out.println("error");
-//                }
-//                i++;
-//            }
-//            us.close();
-//            correct.close();
-//        }catch(Exception e){
-//            System.err.println(e);
-//        }
-        System.out.println(end - start);         // Report the results
         writeOutResult(sorted, outFileName);
+
+        //validate result
+        try {
+            BufferedReader us = new BufferedReader(new FileReader(outFileName));
+            BufferedReader correct = new BufferedReader(new FileReader(validationFileName));
+
+            int i = 0;
+            while(correct.ready()){
+                String ourLine = us.readLine();
+                String correctLine = correct.readLine();
+                if(!ourLine.equals(correctLine)){
+                    System.out.println("error " + i + ": " + ourLine + " vs " + correctLine);
+                }
+                i++;
+            }
+            us.close();
+            correct.close();
+        }catch(Exception e){
+            System.err.println(e);
+        }
+        System.out.println(end - start);         // Report the results
     }
 
     // YOUR SORTING METHOD GOES HERE.
@@ -67,11 +69,17 @@ public class Group8 {
     // You would need to provide your own function that prints your sorted array to
     // a file in the exact same format that my program outputs
     private static Data[] sort(String[] toSort) {
+        long start = System.currentTimeMillis(); // Begin the timing
         Data[] toSortData = new Data[toSort.length];
         for (int i = 0; i < toSort.length; ++i) {
             toSortData[i] = new Data(toSort[i]);
         }
+        long end = System.currentTimeMillis(); // Begin the timing
+        System.out.println("Time to fill array: " + (end-start));
+        start = System.currentTimeMillis();
         quicksort(toSortData);
+        end = System.currentTimeMillis();
+        System.out.println("Time to sort array: " + (end-start));
         return toSortData;
     }
 
@@ -169,10 +177,10 @@ public class Group8 {
         //2 = Pure Fraction (third in ties)
         private int type;
         //For two Mixed Fractions, the smaller whole number goes first
-        private double whole = 0;
+        private long whole = 0;
         //For two Mixed Fractions with the same whole part
         //or two pure fractions, the smaller numerator goes first.
-        private double numerator = 0;
+        private long numerator = 0;
 
 
         Data(String o) {
@@ -181,17 +189,17 @@ public class Group8 {
                 String[] oa = o.split(" ");
                 if (oa.length == 2) {
                     this.type = 1; //Mixed Fraction
-                    double whole = Double.parseDouble(oa[0]);
+                    long whole = Long.parseLong(oa[0]);
                     this.value += whole;
                     this.whole = whole;
                     String[] fraction = oa[1].split("/");
-                    this.numerator = Double.parseDouble(fraction[0]);
-                    this.value += this.numerator / Double.parseDouble(fraction[1]);
+                    this.numerator = Long.parseLong(fraction[0]);
+                    this.value += (double) this.numerator / Double.parseDouble(fraction[1]);
                 } else {
                     this.type = 2; //Pure Fraction
                     String[] fraction = oa[0].split("/");
-                    this.numerator = Double.parseDouble(fraction[0]);
-                    this.value += this.numerator / Double.parseDouble(fraction[1]);
+                    this.numerator = Long.parseLong(fraction[0]);
+                    this.value += (double) this.numerator / Double.parseDouble(fraction[1]);
                 }
             } else {
                 this.type = 0; //Decimal Expression
@@ -207,7 +215,11 @@ public class Group8 {
 
         @Override
         public int compareTo(Data other) {
-            int diff = (int) Math.signum(this.value - other.value);
+            double valdiff = this.value - other.value;
+            if(Math.abs(valdiff) <= 0.00000000001){
+                valdiff = 0;
+            }
+            int diff = (int) Math.signum(valdiff);
             if (diff == 0) {
                 diff = this.type - other.type; //Compare by types
                 if (diff == 0 && this.type != 0) { //No further tiebreakers for decimals
