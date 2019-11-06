@@ -216,7 +216,7 @@ public class Group8 {
         @Override
         public int compareTo(Data other) {
             double valdiff = this.value - other.value;
-            if(Math.abs(valdiff) <= 0.00000000001){
+            if(Math.abs(valdiff) <= 0.0000000000001){
                 valdiff = 0;
             }
             int diff = (int) Math.signum(valdiff);
