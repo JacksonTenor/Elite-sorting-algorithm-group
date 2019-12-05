@@ -14,17 +14,14 @@ public class Group8 {
         // testing the comparator:
         //Data.test_Data(); // This MUST be commented out for your submission to the competition!
 
-//        if (args.length < 2) {
-//            System.out.println("Please run with two command line arguments: input and output file names");
-//            System.exit(0);
-//        }
-//
-//        String inputFileName = args[0];
-//        String outFileName = args[1];
+        if (args.length < 2) {
+            System.out.println("Please run with two command line arguments: input and output file names");
+            System.exit(0);
+        }
 
-        String inputFileName = "data/prelim1.txt";
-        String validationFileName = "data/outprelim1.txt";
-        String outFileName = "data/output.txt";
+        String inputFileName = args[0];
+        String outFileName = args[1];
+
 
         // read as strings
         String [] data = readData(inputFileName);
@@ -36,29 +33,28 @@ public class Group8 {
         long start = System.currentTimeMillis(); // Begin the timing
         sorted = sort(toSort);
         long end = System.currentTimeMillis();   // End the timing
-
+        System.out.println(end - start); // Report the results
         writeOutResult(sorted, outFileName);
 
-        //validate result
-        try {
-            BufferedReader us = new BufferedReader(new FileReader(outFileName));
-            BufferedReader correct = new BufferedReader(new FileReader(validationFileName));
-
-            int i = 0;
-            while(correct.ready()){
-                String ourLine = us.readLine();
-                String correctLine = correct.readLine();
-                if(!ourLine.equals(correctLine)){
-                    System.out.println("error " + i + ": " + ourLine + " vs " + correctLine);
-                }
-                i++;
-            }
-            us.close();
-            correct.close();
-        }catch(Exception e){
-            System.err.println(e);
-        }
-        System.out.println(end - start);         // Report the results
+//        //validate result
+//        try {
+//            BufferedReader us = new BufferedReader(new FileReader(outFileName));
+//            BufferedReader correct = new BufferedReader(new FileReader(validationFileName));
+//
+//            int i = 0;
+//            while(correct.ready()){
+//                String ourLine = us.readLine();
+//                String correctLine = correct.readLine();
+//                if(!ourLine.equals(correctLine)){
+//                    System.out.println("error " + i + ": " + ourLine + " vs " + correctLine);
+//                }
+//                i++;
+//            }
+//            us.close();
+//            correct.close();
+//        }catch(Exception e){
+//            System.err.println(e);
+//        }
     }
 
     // YOUR SORTING METHOD GOES HERE.
@@ -69,17 +65,11 @@ public class Group8 {
     // You would need to provide your own function that prints your sorted array to
     // a file in the exact same format that my program outputs
     private static Data[] sort(String[] toSort) {
-        long start = System.currentTimeMillis(); // Begin the timing
         Data[] toSortData = new Data[toSort.length];
         for (int i = 0; i < toSort.length; ++i) {
             toSortData[i] = new Data(toSort[i]);
         }
-        long end = System.currentTimeMillis(); // Begin the timing
-        System.out.println("Time to fill array: " + (end-start));
-        start = System.currentTimeMillis();
         quicksort(toSortData);
-        end = System.currentTimeMillis();
-        System.out.println("Time to sort array: " + (end-start));
         return toSortData;
     }
 
@@ -89,7 +79,7 @@ public class Group8 {
     }
 
     private static void quicksort (Data[] arr, int low, int high){
-        if (high - low > 7){
+        if (high - low > 8){
             int p = partition(arr, low, high);
             quicksort(arr, low, p-1);
             quicksort(arr, p+1, high);
@@ -97,7 +87,7 @@ public class Group8 {
     }
     private static int partition (Data[] arr, int low, int high){
         int pivotPosition = high;
-        if(high - low > 7) {
+        if(high - low > 8) {
             int middle = (int) Math.floor((high - low) / 2) + low;
             if (arr[low].compareTo(arr[middle]) <= 0) {
                 if (arr[high].compareTo(arr[low]) <= 0) {
